@@ -10,12 +10,14 @@
       }
     ],
     "packages": [
-      "zenaura==0.9.93"
+      "zenaura==0.9.111"
     ],
     "fetch": [
       {
         "files": [
-          "./public/routes.py"
+          "./public/routes.py",
+          "./public/components.py",
+          "./public/presentational.py"
         ]
       }
     ],

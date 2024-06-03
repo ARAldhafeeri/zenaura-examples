@@ -1,0 +1,45 @@
+
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <link rel="icon" href="./public/favicon.ico" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#000000" />
+    <meta name="title" content="zenaura" />
+    <meta http-equiv="refresh"  />
+    <meta
+      name="description"
+      content="this app created with zenaura"
+    />
+    <script type="module" src="https://pyscript.net/releases/2024.1.1/core.js"></script>
+    <link rel="stylesheet" href="public/gigavolt.min.css">
+<script src="public/highlight.min.js"></script>
+<script src="public/python.min.js"></script>
+<script>hljs.highlightAll();</script>
+
+        <script>
+            const ws = new WebSocket("ws://localhost:5000/refresh");
+            ws.onmessage = () => {
+            console.log("Reloading...");
+            location.reload();
+            };
+        </script>
+        
+
+ 
+	<script type="py" src="./public/main.py" config="./public/config.json"></script>
+
+    <link  rel="stylesheet" href="./public/main.css">
+
+    <title>zenaura</title>
+    
+  </head>
+  <body>
+    <div id="root">
+        <div data-zenaura="72e7e09f"><div data-zenaura="3789fb95" class="container"><div data-zenaura="3789fb9500" id="large-header"><h1 data-zenaura="3789fb950010">count 0</h1><button data-zenaura="3789fb950011" class="btn" py-click="counter1.increment">Increment</button></div></div><div data-zenaura="ecc7a171" class="container"><div data-zenaura="ecc7a17100" id="large-header"><h1 data-zenaura="ecc7a1710010">count 0</h1><button data-zenaura="ecc7a1710011" class="btn" py-click="counter2.increment">Increment</button></div></div><div data-zenaura="ce5bdada" class="container"><div data-zenaura="ce5bdada00" id="large-header"><h1 data-zenaura="ce5bdada0010">count 0</h1><button data-zenaura="ce5bdada0011" class="btn" py-click="counter3.increment">Increment</button></div></div><div data-zenaura="1ed21448" class="container"><div data-zenaura="1ed2144800" id="large-header"><h1 data-zenaura="1ed214480010">count 0</h1><button data-zenaura="1ed214480011" class="btn" py-click="counter4.increment">Increment</button></div></div></div>
+    </div>
+  
+  </body>
+
+</html>

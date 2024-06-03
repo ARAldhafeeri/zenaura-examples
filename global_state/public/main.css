@@ -1,0 +1,8 @@
+.zenaura{
+  text-align: center;
+}
+
+.grid { display: grid; grid-template-columns: repeat(50, 10px); grid-template-rows: repeat(50, 10px); gap: 1px; }
+.cell { width: 10px; height: 10px; background-color: white; border: 1px solid gray; }
+.alive { background-color: black; width: 10px; height: 10px;}
+.dead {background-color: white; width: 10px; height: 10px;}

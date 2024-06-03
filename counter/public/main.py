@@ -10,6 +10,9 @@ from zenaura.client.page import Page
 import asyncio 
 import json
 
+
+
+
 @dataclass
 class CounterState:
 	count: int
@@ -76,7 +79,6 @@ def Image(src : str) -> Node:
          attributes=[
              Attribute(key="src", value=src), 
              Attribute("width", "100"), 
-             Attribute("loading", "lazy"),
              Attribute("height", "200"),  
              Attribute(key="alt", value="logo")]
              )
@@ -98,7 +100,7 @@ class SimpleUi(Component):
             Attribute("styles", STYLES.btn),
             Attribute("id", "centered"),
         ]
-        div.append_child(Image("public/logo.png"))
+        div.append_child(Image("public/logo.svg"))
         div.append_child(btn)
         return div
 
@@ -174,10 +176,6 @@ simpleUi = SimpleUi()
 
 counter1 = Counter({"instance_name": "counter1"})
 counter2 = Counter({"instance_name": "counter2"})
-
-print(counter1.id)
-print(counter2.id)
-print(simpleUi.id)
 # # app 
 
 
@@ -185,8 +183,6 @@ print(simpleUi.id)
 router = App() 
 simple_ui_page = Page([simpleUi])
 counters_page = Page([counter1, counter2])
-print("counters page id", counters_page.id)
-print("simple ui page id", simple_ui_page.id)
 router.add_route(Route(
         title="test",
         path=ClientRoutes.home.value,
