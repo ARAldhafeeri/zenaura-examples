@@ -4,7 +4,7 @@ from public.presentational import *
 from zenaura.client.observer import Observer, Subject
 from zenaura.client.dom import zenaura_dom
 from zenaura.client.component import Component, Reuseable
-from public.presentational import Div, NavItemText, Header1, Paragraph, CounterPresntaional, Button
+from public.presentational import Div, Header1, Paragraph, CounterPresntaional, Button
 
 # Create the subject
 counter_subject = Subject()
