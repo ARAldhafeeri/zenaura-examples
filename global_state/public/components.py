@@ -5,7 +5,7 @@ from zenaura.client.observer import Observer, Subject
 from zenaura.client.dom import zenaura_dom
 from zenaura.client.component import Component, Reuseable
 from public.presentational import Div, Header1, Paragraph, CounterPresntaional, Button
-
+from zenaura.client.mutator import mutator
 # Create the subject
 counter_subject = Subject()
 counter_subject.state = {"counter1": 0, "counter2": 0, "counter3": 0, "counter4": 0}
@@ -22,10 +22,10 @@ class Counter(Component, CounterObserver):
         self.subject = subject
         self.subject.attach(self)
         self.counter_name = counter_name
-    
+        
+    @mutator
     async def increment(self, event):
         self.subject.state[self.counter_name] += 1
-        await zenaura_dom.render(self)
         self.subject.notify()
 
     def update(self, value):
