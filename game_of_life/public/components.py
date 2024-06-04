@@ -50,7 +50,6 @@ class GameOfLife(Component):
                 new_live_cells.append(Cell(False, 0))
 
         self.grid = new_live_cells
-        self.state["generations"] += 1
         self._update_live_cells()
 
     def get_neighbors(self, row, col):
