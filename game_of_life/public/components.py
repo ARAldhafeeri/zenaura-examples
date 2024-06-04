@@ -12,9 +12,10 @@ class Cell:
     generation: int = 0
 
 class GameOfLifeState:
-    grid: list[list[Cell]]  # 2D grid of cells
+    grid: list[Cell]  # Flattened grid of cells
     generations: int
     running: bool
+    live_cells: list[Cell]  # Store live cells as a separate list
 
 @Reuseable
 class GameOfLife(Component):
@@ -22,50 +23,78 @@ class GameOfLife(Component):
         super().__init__()
         self.rows = 50
         self.cols = 50
-        self.grid = [[Cell(False) for _ in range(self.cols)] for _ in range(self.rows)]
-        self.state = {"grid": self.grid, "generations": 0, "running": False}
+        self.grid = [Cell(False) for _ in range(self.rows * self.cols)]  # Single list representation
+        self.state = {"grid": self.grid, "generations": 0, "running": False, "live_cells": []}
         self.colors = {}
+
+    def get_index(self, row, col):
+        return row * self.cols + col
+    
+    def next_generation(self):
+        new_live_cells = []
+        neighbor_counts = {}  # Dictionary to count neighbors
+        
+        # Iterate over all cells in the grid (both live and dead)
+        for i, cell in enumerate(self.grid):
+            row = i // self.cols
+            col = i % self.cols
+            for neighbor_index in self.get_neighbors(row, col):
+                neighbor_counts[neighbor_index] = neighbor_counts.get(neighbor_index, 0) + int(cell.alive)
+        
+        # Apply Game of Life rules
+        for i, cell in enumerate(self.grid):
+            live_neighbors = neighbor_counts.get(i, 0)
+            if (live_neighbors == 3) or (live_neighbors == 2 and cell.alive):
+                new_live_cells.append(Cell(True, cell.generation + 1))
+            else:
+                new_live_cells.append(Cell(False, 0))
+
+        self.grid = new_live_cells
+        self.state["generations"] += 1
+        self._update_live_cells()
 
     def get_neighbors(self, row, col):
         neighbors = []
         for i in range(-1, 2):
             for j in range(-1, 2):
-                if (0 <= row + i < self.rows) and (0 <= col + j < self.cols) and (i != 0 or j != 0):
-                    neighbors.append(self.grid[row + i][col + j])
+                if i != 0 or j != 0:
+                    new_row = row + i
+                    new_col = col + j
+                    if 0 <= new_row < self.rows and 0 <= new_col < self.cols:
+                        neighbors.append(self.get_index(new_row, new_col))
         return neighbors
 
-    def next_generation(self):
-        new_grid = [[Cell(False) for _ in range(self.cols)] for _ in range(self.rows)]
-        for row in range(self.rows):
-            for col in range(self.cols):
-                live_neighbors = sum(cell.alive for cell in self.get_neighbors(row, col))
-                if self.grid[row][col].alive:
-                    new_grid[row][col].alive = 2 <= live_neighbors <= 3
-                    new_grid[row][col].generation = self.grid[row][col].generation + 1 if new_grid[row][col].alive else 0
-                else:
-                    new_grid[row][col].alive = live_neighbors == 3
-                    new_grid[row][col].generation = 1 if new_grid[row][col].alive else 0
-        self.grid = new_grid
+    def _update_live_cells(self):
+        self.state["live_cells"] = [
+            Cell(i % self.cols, -(i // self.cols))  # Y is negative
+            for i, cell in enumerate(self.grid) if cell.alive
+        ]
+
 
     def generate_random_color(self):
         return "#{:06x}".format(random.randint(0, 0xFFFFFF))
 
-    def get_cell_color(self, cell):
+    def get_cell_color(self, row, col):
+        index = self.get_index(row, col)
+        cell = self.grid[index]
         if cell.alive:
             if cell.generation not in self.colors:
                 self.colors[cell.generation] = self.generate_random_color()
             return self.colors[cell.generation]
         else:
             return "white"
+        
 
     @mutator
     async def toggle_cell(self, event):
         id = event.target.id
         row, col = map(int, id.split(","))
-        self.grid[row][col].alive = not self.grid[row][col].alive
-        self.grid[row][col].generation = 1 if self.grid[row][col].alive else 0
+        index = self.get_index(row, col)
+        self.grid[index].alive = not self.grid[index].alive
+        self.grid[index].generation = 1 if self.grid[index].alive else 0
         self.state["grid"] = self.grid
-        print(self.state["grid"])
+        self._update_live_cells()  # Update the live_cells list
+
 
     @mutator
     async def step(self, event):
@@ -78,19 +107,21 @@ class GameOfLife(Component):
         self.state["running"] = not self.state["running"]
         while self.state["running"]:
             await self.step(event)
+
     @mutator
     async def reset(self, event):
-        self.grid = [[Cell(False) for _ in range(self.cols)] for _ in range(self.rows)]
-        self.state = {"grid": self.grid, "generations": 0, "running": False}
-    
+        self.state["running"] = False
+        self.state = {"live_cells": [], "generations": 0, "running": False}
+        self.grid = [Cell(False) for _ in range(self.rows * self.cols)] 
+
+
     @mutator
     async def load_pattern(self, event):
         pattern_name = event.target.name
         # Clear the grid first
-        for row in range(self.rows):
-            for col in range(self.cols):
-                self.grid[row][col].alive = False
-                self.grid[row][col].generation = 0
+        for cell in self.grid:
+            cell.alive = False
+            cell.generation = 0
         
         # Define interesting patterns
         patterns = {
@@ -113,30 +144,43 @@ class GameOfLife(Component):
             offset_row = random.randint(0, max_offset_row)
             offset_col = random.randint(0, max_offset_col)
             for r, c in pattern:
-                if 0 <= r + offset_row < self.rows and 0 <= c + offset_col < self.cols:
-                    self.grid[r + offset_row][c + offset_col].alive = True
-                    self.grid[r + offset_row][c + offset_col].generation = 1
+                index = self.get_index(r + offset_row, c + offset_col)
+                if 0 <= index < len(self.grid):
+                    self.grid[index].alive = True
+                    self.grid[index].generation = 1
         
+        # Clear the grid first
+        for cell in self.grid:
+            cell.alive = False
+            cell.generation = 0
+            
+        # Place the selected pattern on the grid
+        for r, c in pattern:
+            index = self.get_index(r + offset_row, c + offset_col)
+            if 0 <= index < len(self.grid):
+                self.grid[index].alive = True
+                self.grid[index].generation = 1
+
         # Introduce additional random alive cells for variety
-        for row in range(self.rows):
-            for col in range(self.cols):
-                if random.random() < 0.05:  # Adjust probability for sparseness/density
-                    self.grid[row][col].alive = True
-                    self.grid[row][col].generation = 1
+        for _ in range(int(self.rows * self.cols * 0.05)):
+            index = random.randint(0, len(self.grid) - 1)
+            self.grid[index].alive = True
+            self.grid[index].generation = 1
+        self._update_live_cells()  # Update the live_cells list
 
-        self.state["grid"] = self.grid
-
+        
     def render(self):
+        live_cells = self.state["live_cells"]
         rows = Div("row", [])
         for row in range(self.rows):
             cells = []
             for col in range(self.cols):
-                cell = self.grid[row][col]
-                cell_alive = f"cell {'alive' if cell.alive else ''}"
-                cell_color = self.get_cell_color(cell)
+                cell = Cell(col, -row)
+                cell_alive = cell in live_cells
+                cell_color = self.get_cell_color(row, col)
                 cells.append(
                     Builder("div")
-                    .with_attribute("class", cell_alive)
+                    .with_attribute("class", f"cell {'alive' if cell_alive else ''}")
                     .with_attribute("id", f"{row},{col}")
                     .with_attribute("py-click", "gameOfLife.toggle_cell")
                     .with_styles({"background-color": cell_color})
