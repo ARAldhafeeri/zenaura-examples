@@ -1,0 +1,15 @@
+.galaxy-container {
+  background: #070F2B;
+}
+
+.stars {
+  position: relative; 
+  width: 600px;    
+  height: 600px;
+}
+
+.star {
+  position: absolute; 
+  background-color: white;
+  border-radius: 50%;   
+}
