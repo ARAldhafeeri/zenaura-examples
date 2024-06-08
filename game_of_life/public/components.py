@@ -71,7 +71,7 @@ class GameOfLife(Component):
 
 
     def generate_random_color(self):
-        return "#{:06x}".format(random.randint(0, 0xFFFFFF))
+        return "#{:06x}".format(random.randint(0, 0x7F7F7F))
 
     def get_cell_color(self, row, col):
         index = self.get_index(row, col)
@@ -81,7 +81,7 @@ class GameOfLife(Component):
                 self.colors[cell.generation] = self.generate_random_color()
             return self.colors[cell.generation]
         else:
-            return "white"
+            return "#A8CFD3"
         
 
     @mutator
@@ -103,8 +103,10 @@ class GameOfLife(Component):
 
     @mutator
     async def start_stop(self, event):
+        print("start")
         self.state["running"] = not self.state["running"]
         while self.state["running"]:
+            await asyncio.sleep(0.003)
             await self.step(event)
 
     @mutator
@@ -202,7 +204,7 @@ class GameOfLife(Component):
         return Div(
             "gridcontainer",
             [
-                Div("controls", [
+                Div("controlsGameOfLife", [
                     Div("buttons", [
                         Button("btn", "start" if not self.state["running"] else "stop", "gameOfLife.start_stop"),
                         Button("btn", "reset", "gameOfLife.reset"),

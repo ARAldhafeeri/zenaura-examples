@@ -31,6 +31,10 @@ class ZenAuraGalaxy(Component):
     async def update_mouse_position(self, event):
         self.mouse_position = [event.clientX, event.clientY]
         asyncio.get_running_loop().run_until_complete(self.update_stars())
+    
+    @mutator
+    async def attached(self):
+        await self.start_game()
         
     async def update_stars(self):
         for star in self.stars:
